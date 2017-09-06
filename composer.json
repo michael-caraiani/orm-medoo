@@ -1,0 +1,17 @@
+{
+    "name": "tisuit/orm",
+    "type": "library",
+    "description": "Package for TiSuit",
+    "license": "MIT",
+    "prefer-stable": true,
+    "require": {
+        "tisuit/core": "@stable",
+        "catfan/medoo": "@stable",
+        "robmorgan/phinx": "@stable"
+    },
+    "autoload": {
+        "psr-4": {
+            "TiSuit\\ORM\\": "src/"
+        }
+    }
+}
