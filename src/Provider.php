@@ -50,7 +50,9 @@ class Provider implements ServiceProviderInterface
                 $class .= ucfirst($part);
             }
             if (!$container->has('entity_'.$class)) {
-                $container['entity_'.$class] = new $class($container);
+                $container['entity_'.$class] = $container->factory(function ($container) use ($class) {
+                    return new $class($container);
+                });
             }
 
             return $container['entity_'.$class];

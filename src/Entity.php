@@ -8,6 +8,17 @@ abstract class Entity extends \TiSuit\Core\Root
 {
     protected $relationObjects = [];
 
+    /**
+     * Get short entity name (without namespace)
+     * Helper function, required for lazy load.
+     *
+     * @return string
+     */
+    protected function __getEntityName(): string
+    {
+        return ($pos = strrpos(get_class($this), '\\')) ? substr(get_class($this), $pos + 1) : $pos;
+    }
+
     public function __call(?string $method = null, array $params = [])
     {
         $parts = preg_split('/([A-Z][^A-Z]*)/', $method, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
@@ -73,8 +84,7 @@ abstract class Entity extends \TiSuit\Core\Root
      */
     public function load($value, $field = 'id', array $fields = null): \TiSuit\ORM\Entity
     {
-        $data = $this->medoo->get($this->getTable(), $fields ?? '*', [$field => $value]);
-        $this->data = $data[0] ?? [];
+        $this->data = $this->medoo->get($this->getTable(), $fields ?? '*', [$field => $value]);
 
         return $this;
     }
@@ -91,7 +101,7 @@ abstract class Entity extends \TiSuit\Core\Root
         $allData = $this->medoo->select($this->getTable(), '*', $where);
         $items = [];
         foreach ($allData as $data) {
-            $items[] = $this->container->get('entity_'.get_class($this))->setData($data);
+            $items[$data['id']] = $this->container['entity']($this->__getEntityName())->setData($data);
         }
 
         return new \Slim\Collection($items);
@@ -114,7 +124,7 @@ abstract class Entity extends \TiSuit\Core\Root
 
             $entity = $this->entity($entity);
             $key = $relation['key'] ?? 'id';
-            $foreignKey = $relation['foreign_key'] ?? (($pos = strrpos(get_class($this), '\\')) ? substr(get_class($this), $pos + 1) : $pos).'_id';
+            $foreignKey = $relation['foreign_key'] ?? $this->__getEntityName().'_id';
             $type = $relation['type'] ?? 'has_one';
             $this->relationObjects[$name] = ($type === 'has_one') ? $entity->load($this->get($key), $foreignKey) : $entity->loadAll([$foreignKey => $this->get($key)]);
         }

@@ -52,4 +52,46 @@ class EntityTest extends TestCase
         $entity->save();
         $this->assertEquals('New test', $entity->getName());
     }
+
+    public function testLoad(): void
+    {
+        $this->testSave();
+        $entity = $this->container['entity']('user');
+        $this->assertEquals([], $entity->getData());
+        $entity->load('example@example.com', 'email');
+        $this->assertEquals('example@example.com', $entity->getEmail());
+    }
+
+    public function testLoadAll(): void
+    {
+        $this->testSave();
+        $entity = $this->container['entity']('user');
+        $collection = $entity->loadAll(['email' => 'example@example.com']);
+        $this->assertInstanceOf('\Slim\Interfaces\CollectionInterface', $collection);
+        $this->assertEquals(true, ($collection->count() > 0));
+    }
+
+    public function testHas(): void
+    {
+        $this->testSave();
+        $entity = $this->container['entity']('user');
+        $this->assertEquals(true, $entity->has(['email' => 'example@example.com']));
+    }
+
+    public function testCount(): void
+    {
+        $this->testSave();
+        $entity = $this->container['entity']('user');
+        $this->assertEquals(true, ($entity->count(['email' => 'example@example.com']) > 0));
+    }
+
+    public function testDelete(): void
+    {
+        $this->testSave();
+        $entity = $this->container['entity']('user')->load('example@example.com', 'email');
+        $this->assertEquals(true, (bool) $entity->getId());
+        $id = $entity->getId();
+        $this->assertEquals(true, $entity->delete());
+        $this->assertEquals(false, $entity->has(['id' => $id]));
+    }
 }
