@@ -106,18 +106,20 @@ abstract class Entity extends \TiSuit\Core\Root
      */
     public function loadRelation(string $name): ?\TiSuit\ORM\Entity
     {
-        if (!isset($this->relations[$name]) || empty($this->relations[$name])) {
-            [$entity, $columns] = $this->getRelations()[$name] ?? [null, []];
-            $localColumn = $columns[0] ?? null;
-            $foreignColumn = $columns[1] ?? null;
-            if (!$entity || !$this->get($localColumn)) {
+        if (!isset($this->relationObjects[$name]) || empty($this->relationObjects[$name])) {
+            $relation = $this->getRelations()[$name];
+            if (!$relation || !$relation['entity'] || !$this->get($relation['key'] ?? 'id')) {
                 return null;
             }
 
-            $this->relations[$name] = $this->entity($entity)->load($this->get($localColumn), $foreignColumn);
+            $entity = $this->entity($entity);
+            $key = $relation['key'] ?? 'id';
+            $foreignKey = $relation['foreign_key'] ?? (($pos = strrpos(get_class($this), '\\')) ? substr(get_class($this), $pos + 1) : $pos).'_id';
+            $type = $relation['type'] ?? 'has_one';
+            $this->relationObjects[$name] = ($type === 'has_one') ? $entity->load($this->get($key), $foreignKey) : $entity->loadAll([$foreignKey => $this->get($key)]);
         }
 
-        return $this->relations[$name];
+        return $this->relationObjects[$name];
     }
 
     /**
@@ -166,14 +168,33 @@ abstract class Entity extends \TiSuit\Core\Root
      * <code>
      * //structure
      * [
-     *     'relation__name' => ['another_entity_name', 'current_entity_column' => 'another_entity_column'],
+     *     'relation__name' => [
+     *         'entity' => 'another_entity_name',
+     *         'type' => 'has_one', //default, other options: has_many
+     *         'key' => 'current_entity_key', //optional, default: id,
+     *         'foreign_key' => 'another_entity_key', //optional, default '<current_entity>_id'
+     *      ],
      * ];.
      *
      * //Example (current entity: blog post, another entity: user)
      * [
-     *     'author' => ['user', 'author_id' => 'id']
+     *     'author' => [ //has_one
+     *         'entity' => 'user',
+     *         'key' => 'author_id',
+     *         'foreign_key' => 'id'
+     *     ],
      * ];
      * //This example can be called like $blogPostEntity->getAuthor()
+     *
+     * //Example (current entity: user, another entity: blog post)
+     * [
+     *     'posts' => [
+     *         'entity' => 'post',
+     *         'type' => 'has_many',
+     *         'foreign_key' => 'author_id',
+     *     ],
+     * ]
+     * //This example can be called like $userEntity->getPosts()
      * </code>
      *
      * @return array
