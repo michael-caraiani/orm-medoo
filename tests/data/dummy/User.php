@@ -19,6 +19,7 @@ class User extends \TiSuit\ORM\Entity
                 'type' => 'has_many',
                 'foreign_key' => 'author_id',
             ],
+            'error_relation' => [],
         ];
     }
 }

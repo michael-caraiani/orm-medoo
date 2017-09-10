@@ -1,5 +1,5 @@
 {
-    "name": "tisuit/orm",
+    "name": "tisuit/orm-medoo",
     "type": "library",
     "description": "Package for TiSuit",
     "license": "MIT",

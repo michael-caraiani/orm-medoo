@@ -7,8 +7,8 @@ return [
     'database_type' => 'mysql',
     'database_name' => 'tisuit',
     'server' => '127.0.0.1',
-    'username' => 'tisuit',
-    'password' => 'tisuit',
+    'username' => 'travis',
+    'password' => '',
     'charset' => 'utf8',
     'port' => 3306,
     'option' => [

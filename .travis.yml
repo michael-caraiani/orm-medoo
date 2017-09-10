@@ -1,8 +1,14 @@
 ---
 language: "php"
 
+services:
+  - mysql
+
 php:
   - 7.1
+
+before_install:
+  - mysql -e 'CREATE DATABASE tisuit;'    
 
 before_script:
 - composer install

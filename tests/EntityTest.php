@@ -94,4 +94,26 @@ class EntityTest extends TestCase
         $this->assertEquals(true, $entity->delete());
         $this->assertEquals(false, $entity->has(['id' => $id]));
     }
+
+    public function testLoadRelation(): void
+    {
+        //create some articles
+        $user = $this->container['entity']('user')->load('example@example.com', 'email');
+        $this->assertEquals(true, (bool) $user->getId());
+        $article = $this->container['entity']('article');
+        $article->setData([
+            'author_id' => $user->getId(),
+            'title' => 'Test',
+            'description' => 'test',
+        ]);
+        foreach (range(1, 5) as $i) {
+            $article->setId(null);
+            $article->save();
+        }
+
+        $collection = $user->getArticles();
+        $this->assertInstanceOf('\Slim\Interfaces\CollectionInterface', $collection);
+        $this->assertEquals(true, ($collection->count() > 0));
+        $this->assertEquals(null, $user->getErrorRelation());
+    }
 }
