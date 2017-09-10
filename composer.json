@@ -5,6 +5,7 @@
     "license": "MIT",
     "prefer-stable": true,
     "require": {
+        "ext-pdo": "*",
         "tisuit/core": "@stable",
         "catfan/medoo": "@stable",
         "robmorgan/phinx": "@stable"
