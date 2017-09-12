@@ -25,7 +25,7 @@ abstract class Entity extends \TiSuit\Core\Root
         $type = array_shift($parts);
         $relation = strtolower(implode('_', $parts));
 
-        if ($type === 'get' && isset($this->getRelations()[$relation])) {
+        if ('get' === $type && isset($this->getRelations()[$relation])) {
             return $this->loadRelation($relation);
         }
 
@@ -126,7 +126,7 @@ abstract class Entity extends \TiSuit\Core\Root
             $key = $relation['key'] ?? 'id';
             $foreignKey = $relation['foreign_key'] ?? $this->__getEntityName().'_id';
             $type = $relation['type'] ?? 'has_one';
-            $this->relationObjects[$name] = ($type === 'has_one') ? $entity->load($this->get($key), $foreignKey) : $entity->loadAll([$foreignKey => $this->get($key)]);
+            $this->relationObjects[$name] = ('has_one' === $type) ? $entity->load($this->get($key), $foreignKey) : $entity->loadAll([$foreignKey => $this->get($key)]);
         }
 
         return $this->relationObjects[$name];
