@@ -8,7 +8,8 @@
         "ext-pdo": "*",
         "tisuit/core": "@stable",
         "catfan/medoo": "@stable",
-        "robmorgan/phinx": "@stable"
+        "robmorgan/phinx": "@stable",
+        "respect/validation": "^1.1"
     },
     "autoload": {
         "psr-4": {

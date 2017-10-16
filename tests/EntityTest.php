@@ -53,6 +53,15 @@ class EntityTest extends TestCase
         $this->assertEquals('New test', $entity->getName());
     }
 
+    public function testSaveValidationFailed(): void
+    {
+        $data = ['email' => 'example@example.com', 'name' => ['fail' => 'me']];
+        $entity = $this->container['entity']('user');
+        $entity->setData($data);
+        $this->expectException(\Exception::class);
+        $entity->save();
+    }
+
     public function testLoad(): void
     {
         $this->testSave();

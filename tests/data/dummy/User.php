@@ -4,13 +4,33 @@ declare(strict_types=1);
 
 namespace TiSuit\ORM\Tests\Dummy;
 
+use Respect\Validation\Validator as v;
+
 class User extends \TiSuit\ORM\Entity
 {
+    /**
+     * {@inheritdoc}
+     */
     public function getTable(): string
     {
         return 'users';
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getValidators(): array
+    {
+        return [
+            'save' => [
+                'name' => v::stringType()->length(1, 255),
+            ],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getRelations(): array
     {
         return [

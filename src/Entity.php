@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace TiSuit\ORM;
 
+use Exception;
+use Respect\Validation\Exceptions\NestedValidationException;
+use Slim\Collection;
+
 abstract class Entity extends \TiSuit\Core\Root
 {
     protected $relationObjects = [];
@@ -19,6 +23,12 @@ abstract class Entity extends \TiSuit\Core\Root
         return ($pos = strrpos(get_class($this), '\\')) ? substr(get_class($this), $pos + 1) : $pos;
     }
 
+    /**
+     * Magic relation getter.
+     *
+     * @param null|string $method
+     * @param array       $params
+     */
     public function __call(?string $method = null, array $params = [])
     {
         $parts = preg_split('/([A-Z][^A-Z]*)/', $method, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
@@ -47,7 +57,7 @@ abstract class Entity extends \TiSuit\Core\Root
      *
      * @param array $data
      *
-     * @return \TiSuit\ORM\Entity
+     * @return Entity
      */
     public function setData(array $data)
     {
@@ -59,10 +69,16 @@ abstract class Entity extends \TiSuit\Core\Root
     /**
      * Save entity data in db.
      *
-     * @return \TiSuit\ORM\Entity
+     * @throws Exception if entity data is not valid
+     *
+     * @return Entity
      */
-    public function save()
+    public function save(): Entity
     {
+        if ($this->validate()) {
+            throw new Exception('Entity '.$this->__getEntityName().' data is not valid');
+        }
+
         if ($this->getId()) {
             $this->medoo->update($this->getTable(), $this->data, ['id' => $this->getId()]);
         } else {
@@ -74,15 +90,36 @@ abstract class Entity extends \TiSuit\Core\Root
     }
 
     /**
+     * Validate entity data.
+     *
+     * @param string $method Validation for method, default: save
+     *
+     * @return array [['field' => 'error message']]
+     */
+    public function validate(string $method = 'save'): array
+    {
+        $errors = [];
+        foreach ($this->getValidators()[$method] ?? [] as $field => $validator) {
+            try {
+                $validator->assert($this->get($field));
+            } catch (NestedValidationException $e) {
+                $errors[$field] = $e->getFullMessage();
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * Load entity (data from db).
      *
      * @param mixed  $value  Field value (eg: id field with value = 10)
      * @param string $field  Field name, default: id
      * @param array  $fields Fields (columns) to load, default: all
      *
-     * @return \TiSuit\ORM\Entity
+     * @return Entity
      */
-    public function load($value, $field = 'id', array $fields = null): \TiSuit\ORM\Entity
+    public function load($value, $field = 'id', array $fields = null): Entity
     {
         $this->data = $this->medoo->get($this->getTable(), $fields ?? '*', [$field => $value]);
 
@@ -94,9 +131,9 @@ abstract class Entity extends \TiSuit\Core\Root
      *
      * @param array $where Where clause
      *
-     * @return \Slim\Collection
+     * @return Collection
      */
-    public function loadAll(array $where = []): \Slim\Collection
+    public function loadAll(array $where = []): Collection
     {
         $allData = $this->medoo->select($this->getTable(), '*', $where);
         $items = [];
@@ -112,7 +149,7 @@ abstract class Entity extends \TiSuit\Core\Root
      *
      * @param string $name Relation name
      *
-     * @return null|\Slim\Collection|\TiSuit\ORM\Entity
+     * @return null|Collection|Entity
      */
     public function loadRelation(string $name)
     {
@@ -129,7 +166,7 @@ abstract class Entity extends \TiSuit\Core\Root
             $this->relationObjects[$name] = ('has_one' === $type) ? $entity->load($this->get($key), $foreignKey) : $entity->loadAll([$foreignKey => $this->get($key)]);
         }
 
-        return $this->relationObjects[$name];
+        return $this->relationObjects[$name] ?? null;
     }
 
     /**
@@ -172,6 +209,23 @@ abstract class Entity extends \TiSuit\Core\Root
      * @return string
      */
     abstract public function getTable(): string;
+
+    /**
+     * Get list of field validations
+     * Structure:
+     * <code>
+     * [
+     *     '<method>' => [
+     *         '<field_name>' => v::stringType()->length(1, 255),
+     *          //...
+     *     ],
+     * ];
+     * </code>
+     * Example: ['save' => ['name' => v::stringType()->length(1,255)]].
+     *
+     * @return array
+     */
+    abstract public function getValidators(): array;
 
     /**
      * Return array of entity relations
