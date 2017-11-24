@@ -73,7 +73,7 @@ abstract class Entity extends \TiSuit\Core\Root
      *
      * @return Entity
      */
-    public function save(): Entity
+    public function save(): self
     {
         if ($this->validate()) {
             throw new Exception('Entity '.$this->__getEntityName().' data is not valid');
@@ -119,9 +119,10 @@ abstract class Entity extends \TiSuit\Core\Root
      *
      * @return Entity
      */
-    public function load($value, $field = 'id', array $fields = null): Entity
+    public function load($value, $field = 'id', array $fields = null): self
     {
-        $this->data = $this->medoo->get($this->getTable(), $fields ?? '*', [$field => $value]);
+        $data = $this->medoo->get($this->getTable(), $fields ?? '*', [$field => $value]);
+        $this->data = is_array($data) ? $data : []; //handle empty result gracefuly
 
         return $this;
     }
@@ -160,9 +161,9 @@ abstract class Entity extends \TiSuit\Core\Root
             }
 
             $entity = $this->entity($relation['entity']);
-            $key = $relation['key'] ?? 'id';
-            $foreignKey = $relation['foreign_key'] ?? $this->__getEntityName().'_id';
             $type = $relation['type'] ?? 'has_one';
+            $key = $relation['key'] ?? ('has_one' === $type ? $this->__getEntityName().'_id' : 'id');
+            $foreignKey = $relation['foreign_key'] ?? ('has_one' === $type ? 'id' : $this->__getEntityName().'_id');
             $this->relationObjects[$name] = ('has_one' === $type) ? $entity->load($this->get($key), $foreignKey) : $entity->loadAll([$foreignKey => $this->get($key)]);
         }
 
@@ -235,8 +236,8 @@ abstract class Entity extends \TiSuit\Core\Root
      *     'relation__name' => [
      *         'entity' => 'another_entity_name',
      *         'type' => 'has_one', //default, other options: has_many
-     *         'key' => 'current_entity_key', //optional, default: id,
-     *         'foreign_key' => 'another_entity_key', //optional, default '<current_entity>_id'
+     *         'key' => 'current_entity_key', //optional, default for has_one: <current_entity>_id, for has_many: id
+     *         'foreign_key' => 'another_entity_key', //optional, default for has_one: id, for has_many: '<current_entity>_id'
      *      ],
      * ];.
      *
@@ -246,6 +247,12 @@ abstract class Entity extends \TiSuit\Core\Root
      *         'entity' => 'user',
      *         'key' => 'author_id',
      *         'foreign_key' => 'id'
+     *     ],
+     * ];
+     * //Example (same as above, but with default values)
+     * [
+     *     'author' => [
+     *         'entity' => 'user',
      *     ],
      * ];
      * //This example can be called like $blogPostEntity->getAuthor()

@@ -30,12 +30,12 @@ class EntityTest extends TestCase
         $this->assertEquals([], $entity->getData());
         //setData (from scratch)
         $entity->setData(['one' => true, 'two' => true]);
-        $this->assertEquals(true, $entity->getOne());
-        $this->assertEquals(true, $entity->getTwo());
+        $this->assertTrue($entity->getOne());
+        $this->assertTrue($entity->getTwo());
         //setData (mege)
         $entity->setData(['one' => false]);
-        $this->assertEquals(false, $entity->getOne());
-        $this->assertEquals(true, $entity->getTwo());
+        $this->assertFalse($entity->getOne());
+        $this->assertTrue($entity->getTwo());
         //getData (with data)
         $this->assertEquals(['one' => false, 'two' => true], $entity->getData());
     }
@@ -45,9 +45,9 @@ class EntityTest extends TestCase
         $data = ['email' => 'example@example.com', 'name' => 'Test user'];
         $entity = $this->container['entity']('user');
         $entity->setData($data);
-        $this->assertEquals(null, $entity->getId());
+        $this->assertNull($entity->getId());
         $entity->save();
-        $this->assertEquals(true, is_numeric($entity->getId()));
+        $this->assertInternalType('numeric', $entity->getId());
         $entity->setData(['name' => 'New test']);
         $entity->save();
         $this->assertEquals('New test', $entity->getName());
@@ -77,38 +77,38 @@ class EntityTest extends TestCase
         $entity = $this->container['entity']('user');
         $collection = $entity->loadAll(['email' => 'example@example.com']);
         $this->assertInstanceOf('\Slim\Interfaces\CollectionInterface', $collection);
-        $this->assertEquals(true, ($collection->count() > 0));
+        $this->assertTrue(($collection->count() > 0));
     }
 
     public function testHas(): void
     {
         $this->testSave();
         $entity = $this->container['entity']('user');
-        $this->assertEquals(true, $entity->has(['email' => 'example@example.com']));
+        $this->assertTrue($entity->has(['email' => 'example@example.com']));
     }
 
     public function testCount(): void
     {
         $this->testSave();
         $entity = $this->container['entity']('user');
-        $this->assertEquals(true, ($entity->count(['email' => 'example@example.com']) > 0));
+        $this->assertTrue(($entity->count(['email' => 'example@example.com']) > 0));
     }
 
     public function testDelete(): void
     {
         $this->testSave();
         $entity = $this->container['entity']('user')->load('example@example.com', 'email');
-        $this->assertEquals(true, (bool) $entity->getId());
+        $this->assertTrue((bool) $entity->getId());
         $id = $entity->getId();
-        $this->assertEquals(true, $entity->delete());
-        $this->assertEquals(false, $entity->has(['id' => $id]));
+        $this->assertTrue($entity->delete());
+        $this->assertFalse($entity->has(['id' => $id]));
     }
 
     public function testLoadRelation(): void
     {
         //create some articles
         $user = $this->container['entity']('user')->load('example@example.com', 'email');
-        $this->assertEquals(true, (bool) $user->getId());
+        $this->assertTrue((bool) $user->getId());
         $article = $this->container['entity']('article');
         $article->setData([
             'author_id' => $user->getId(),
@@ -122,7 +122,7 @@ class EntityTest extends TestCase
 
         $collection = $user->getArticles();
         $this->assertInstanceOf('\Slim\Interfaces\CollectionInterface', $collection);
-        $this->assertEquals(true, ($collection->count() > 0));
-        $this->assertEquals(null, $user->getErrorRelation());
+        $this->assertTrue(($collection->count() > 0));
+        $this->assertNull($user->getErrorRelation());
     }
 }

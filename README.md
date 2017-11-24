@@ -82,7 +82,7 @@ return [
 ];
 ```
 
-Add `\TiSuit\ORM\Provider\` into your providers list (`suit.php`)
+Add `\TiSuit\ORM\Provider` into your providers list (`suit.php`)
 
 ## Usage
 
@@ -166,8 +166,8 @@ return [
     '<relation_name>' => [
         'entity' => '<related_entity_name>',
         'type' => 'has_one', //default, other options: has_many
-        'key' => '<current_entity_key>', //optional, default: id,
-        'foreign_key' => '<related_entity_key>', //optional, default '<current_entity>_id'
+        'key' => 'current_entity_key', //optional, default for has_one: <current_entity>_id, for has_many: id
+        'foreign_key' => 'another_entity_key', //optional, default for has_one: id, for has_many: '<current_entity>_id'
     ],
 ];
 ```
@@ -180,6 +180,17 @@ return [
         'entity' => 'user',
         'key' => 'author_id',
         'foreign_key' => 'id'
+    ],
+];
+```
+
+Example (same as above, but with defaults):
+
+```php
+<?php
+return [
+    'author' => [ //has_one
+        'entity' => 'user',
     ],
 ];
 ```
