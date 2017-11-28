@@ -85,6 +85,12 @@ abstract class Entity extends \TiSuit\Core\Root
             $this->medoo->insert($this->getTable(), $this->data);
             $this->setId($this->medoo->id());
         }
+        $this->sentry->breadcrumbs->record([
+            'message' => 'Entity '.$this->__getEntityName().'::save()',
+            'data' => ['query' => $this->medoo->last()],
+            'category' => 'Database',
+            'level' => 'info',
+        ]);
 
         return $this;
     }
@@ -123,6 +129,12 @@ abstract class Entity extends \TiSuit\Core\Root
     {
         $data = $this->medoo->get($this->getTable(), $fields ?? '*', [$field => $value]);
         $this->data = is_array($data) ? $data : []; //handle empty result gracefuly
+        $this->sentry->breadcrumbs->record([
+            'message' => 'Entity '.$this->__getEntityName().'::load('.$value.', '.$field.', ['.implode(', ', $fields ?? []).')',
+            'data' => ['query' => $this->medoo->last()],
+            'category' => 'Database',
+            'level' => 'info',
+        ]);
 
         return $this;
     }
@@ -137,6 +149,12 @@ abstract class Entity extends \TiSuit\Core\Root
     public function loadAll(array $where = []): Collection
     {
         $allData = $this->medoo->select($this->getTable(), '*', $where);
+        $this->sentry->breadcrumbs->record([
+            'message' => 'Entity '.$this->__getEntityName().'::loadAll('.print_r($where, true).')',
+            'data' => ['query' => $this->medoo->last()],
+            'category' => 'Database',
+            'level' => 'info',
+        ]);
         $items = [];
         foreach ($allData as $data) {
             $items[$data['id']] = $this->container['entity']($this->__getEntityName())->setData($data);
