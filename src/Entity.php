@@ -11,6 +11,7 @@ use Slim\Collection;
 abstract class Entity extends \TiSuit\Core\Root
 {
     protected $relationObjects = [];
+    protected $scheme = null;
 
     /**
      * Get short entity name (without namespace)
@@ -40,6 +41,23 @@ abstract class Entity extends \TiSuit\Core\Root
         }
 
         return parent::__call($method, $params);
+    }
+    
+    /**
+     * Get entity scheme
+     * @return array
+     */
+    public function getScheme(): array
+    {
+        if($this->scheme === null) {
+            $raw = $this->medoo->query("DESCRIBE ".$this->getTable())->fetchAll();
+            $this->scheme = [];
+            foreach($raw as $field) {
+                $this->scheme[$field["Field"]] = $field;
+            }
+        }
+            
+        return $this->scheme;
     }
 
     /**
