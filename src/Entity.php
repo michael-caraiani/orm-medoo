@@ -11,7 +11,7 @@ use Slim\Collection;
 abstract class Entity extends \TiSuit\Core\Root
 {
     protected $relationObjects = [];
-    protected $scheme = null;
+    protected $scheme;
 
     /**
      * Get short entity name (without namespace)
@@ -42,21 +42,22 @@ abstract class Entity extends \TiSuit\Core\Root
 
         return parent::__call($method, $params);
     }
-    
+
     /**
-     * Get entity scheme
+     * Get entity scheme.
+     *
      * @return array
      */
     public function getScheme(): array
     {
-        if($this->scheme === null) {
-            $raw = $this->medoo->query("DESCRIBE ".$this->getTable())->fetchAll();
+        if (null === $this->scheme) {
+            $raw = $this->medoo->query('DESCRIBE '.$this->getTable())->fetchAll();
             $this->scheme = [];
-            foreach($raw as $field) {
-                $this->scheme[$field["Field"]] = $field;
+            foreach ($raw as $field) {
+                $this->scheme[$field['Field']] = $field;
             }
         }
-            
+
         return $this->scheme;
     }
 
@@ -161,10 +162,11 @@ abstract class Entity extends \TiSuit\Core\Root
      * Get all entities from db.
      *
      * @param array $where Where clause
+     * @param bool  $assoc Return collection of entity objects OR of assoc arrays
      *
      * @return Collection
      */
-    public function loadAll(array $where = []): Collection
+    public function loadAll(array $where = [], bool $assoc = false): Collection
     {
         $allData = $this->medoo->select($this->getTable(), '*', $where);
         $this->sentry->breadcrumbs->record([
@@ -175,7 +177,7 @@ abstract class Entity extends \TiSuit\Core\Root
         ]);
         $items = [];
         foreach ($allData as $data) {
-            $items[$data['id']] = $this->container['entity']($this->__getEntityName())->setData($data);
+            $items[$data['id']] = ($assoc) ? $data : $this->container['entity']($this->__getEntityName())->setData($data);
         }
 
         return new \Slim\Collection($items);
