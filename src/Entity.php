@@ -126,9 +126,9 @@ abstract class Entity extends \TiSuit\Core\Root
         $errors = [];
         foreach ($this->getValidators()[$method] ?? [] as $field => $validator) {
             try {
-                $validator->assert($this->get($field));
+                $validator->setName($field)->assert($this->get($field));
             } catch (NestedValidationException $e) {
-                $errors[$field] = $e->getFullMessage();
+                $errors[$field] = $e->getMessages();
             }
         }
 
