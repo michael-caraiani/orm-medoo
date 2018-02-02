@@ -21,7 +21,7 @@ abstract class Entity extends \TiSuit\Core\Root
      */
     protected function __getEntityName(): string
     {
-        return ($pos = strrpos(get_class($this), '\\')) ? substr(get_class($this), $pos + 1) : $pos;
+        return ($pos = strrpos(get_class($this), '\\')) ? substr(get_class($this), $pos + 1) : get_class($this);
     }
 
     /**
