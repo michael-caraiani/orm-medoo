@@ -177,7 +177,7 @@ abstract class Entity extends \TiSuit\Core\Root
         ]);
         $items = [];
         foreach ($allData as $data) {
-            $items[$data['id']] = ($assoc) ? $data : $this->container['entity']($this->__getEntityName())->setData($data);
+            $items[] = ($assoc) ? $data : $this->container['entity']($this->__getEntityName())->setData($data);
         }
 
         return new \Slim\Collection($items);
