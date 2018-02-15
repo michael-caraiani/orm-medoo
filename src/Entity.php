@@ -88,13 +88,14 @@ abstract class Entity extends \TiSuit\Core\Root
     /**
      * Save entity data in db.
      *
+     * @param bool $validate
      * @throws Exception if entity data is not valid
      *
      * @return Entity
      */
-    public function save(): self
+    public function save(bool $validate = true): self
     {
-        if ($this->validate()) {
+        if ($validate && $this->validate()) {
             throw new Exception('Entity '.$this->__getEntityName().' data is not valid');
         }
 
