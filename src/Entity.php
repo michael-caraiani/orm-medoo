@@ -89,6 +89,7 @@ abstract class Entity extends \TiSuit\Core\Root
      * Save entity data in db.
      *
      * @param bool $validate
+     *
      * @throws Exception if entity data is not valid
      *
      * @return Entity
